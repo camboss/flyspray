@@ -77,7 +77,7 @@ void lidar::lidar_main() {
         //av_buffer.push(reading_output);
         watchdog++;
         step = 1;
-        ticks = millis() + 30;
+        ticks = millis();
       }
       break;    
   }
