@@ -27,13 +27,13 @@ class lidar{
       watchdog_prev = 0;
       error_count = 0;
     }
-    static void lidar_startup();
     void lidar_main();
     uint16_t get_reading();
     uint32_t get_errors();
     int get_offset();
     void set_offset(int offset_in);
-    //buffer av_buffer;
+    uint8_t read_lidar();
+    uint8_t init();
 };
 
 extern lidar lidar_left;

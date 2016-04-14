@@ -52,7 +52,7 @@ void adxl345::init(){
    
   while(count < max_readings){
     if(digitalRead(INT1)){
-      readAll(x.value,y.value,z.value);
+      read_accel(x.value,y.value,z.value);
       Serial.println(x.value);
       x.sum = x.sum + x.value;
       y.sum = y.sum + y.value;
@@ -99,7 +99,7 @@ void adxl345::main(){
   
   if((millis()%20==0)&!read_complete){
     read_complete = true;
-    pitch = calculatedPitch();  
+    pitch = calc_pitch();  
   }
   else{
     read_complete = false;  
@@ -111,7 +111,7 @@ double adxl345::get_pitch(){
   return pitch;  
 }
 
-void adxl345::readAll(int16_t &x, int16_t &y, int16_t &z){
+void adxl345::read_accel(int16_t &x, int16_t &y, int16_t &z){
   
   while(!digitalRead(INT1)){};
 
@@ -134,11 +134,11 @@ void adxl345::readAll(int16_t &x, int16_t &y, int16_t &z){
 
 }
 
-double adxl345::calculatedPitch(){
+double adxl345::calc_pitch(){
   
   int16_t xout, yout, zout;
   
-  readAll(xout, yout, zout);
+  read_accel(xout,yout,zout);
   
   return atan2(yout,zout);
   

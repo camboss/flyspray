@@ -19,6 +19,51 @@ int lidar::get_offset(){
   return offset;
 }
 
+uint8_t lidar::init(){
+  
+  wire.beginTransmission((int)LIDARLite_ADDRESS); // transmit to LIDAR-Lite
+  wire.write((int)RegisterMeasure); // sets register pointer to  (0x00)
+  wire.write((int)MeasureValue);
+  if(wire.endTransmission() == 0){
+    return 0;
+  }
+  else{
+    return 1;  
+  }
+    
+}
+
+uint8_t lidar::read_lidar(){
+
+  //Read from the lidar
+  wire.beginTransmission((int)LIDARLite_ADDRESS); // transmit to LIDAR-Lite
+  wire.write((int)RegisterHighLowB); // sets register pointer to  (0x04)
+  if(wire.endTransmission()==0){  
+    wire.requestFrom((int)LIDARLite_ADDRESS, 2);
+    while(wire.available()<2){};
+    reading_raw = wire.read(); // receive high byte (overwrites previous reading)
+    reading_raw = reading_raw << 8; // shift high byte to be high 8 bits
+    reading_raw |= wire.read(); // receive low byte as lower 8 bits
+    reading_output = reading_raw + offset;
+    
+    //Request the next lidar reading to start
+    wire.beginTransmission((int)LIDARLite_ADDRESS); // transmit to LIDAR-Lite
+    wire.write((int)RegisterMeasure); // sets register pointer to  (0x00)
+    wire.write((int)MeasureValue);
+    if(wire.endTransmission()==0){
+      return 0;
+    }
+    else{
+      return 2;
+    }
+  }
+  else{
+    //Typically will happen if the lidar hasn't finished taking a reading yet
+    return 1;
+  }   
+  
+}
+
 void lidar::lidar_main() {
   
   if(watchdog != watchdog_prev){

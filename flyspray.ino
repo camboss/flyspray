@@ -11,15 +11,13 @@
 
 uint16_t calculatedDistance(uint16_t raw, double angle);
 
-bool print_status = false;
+bool print_status, oneshot20ms = false;
 int pos = 0;
 bool toggle = false;
 int YawOutput_Adjusted;
 int PitchOutput_Adjusted;
 boolean stringComplete = false;  // whether the string is complete
 boolean latch = false;
-
-int16_t xval, yval, zval;
 
 void setup() {
 
@@ -87,51 +85,66 @@ void loop() {
   else{
     print_status = false;  
   }*/
+  
+  if((millis()%20)&!oneshot20ms){
+    
+    oneshot20ms = true;
+    
+    //Get a new distance value from each lidar
+    lidar_left.read_lidar();
+    lidar_right.read_lidar();
+    
+    //Get a new pitch value from the accelerometer
+    accel.calc_pitch();
+    
+    //Set a new input for the yaw PID and execute once
+    YawPID.input = calculatedDistance(lidar_left.get_reading(),accel.get_pitch()) - calculatedDistance(lidar_right.get_reading(),accel.get_pitch());
+    YawPID.pid.Compute();
+  
+    //Set a new input for the pitch PID and execute once
+    PitchPID.input = (calculatedDistance(lidar_left.get_reading(),accel.get_pitch()) + calculatedDistance(lidar_right.get_reading(),accel.get_pitch())) / 2;
+    PitchPID.pid.Compute();
+  
+    //If the yaw PID is in manual mode, set the output to 0 so it starts from a known point next time it is set to automatic mode
+    if (YawPID.pid.GetMode() == MANUAL) {
+      YawPID.output = 0;
+    }
+  
+    //If the pitch PID is in manual mode, set the output to 0 so it starts from a known point next time it is set to automatic mode
+    if (PitchPID.pid.GetMode() == MANUAL) {
+      PitchPID.output = 0;
+    }
+  
+    //Add 1020 to the yaw and pitch PID outputs, which is the equivalent of "sticks centered" on the transmitter
+    YawOutput_Adjusted = (int)YawPID.output + 1020;
+    PitchOutput_Adjusted = (int)PitchPID.output + 1020;
+  
+    if (YawPID.pid.GetMode() == AUTOMATIC) {
+      sbusRx.setChannel(4, YawOutput_Adjusted);
+    }
+    else {
+      sbusRx.setChannel(4, 0);
+    }
+  
+    if (PitchPID.pid.GetMode() == AUTOMATIC) {
+      sbusRx.setChannel(2, PitchOutput_Adjusted);
+    }
+    else {
+      sbusRx.setChannel(2, 0);
+    }
+    
+  }
+  else{
+    
+    oneshot20ms = false;
+    
+  }
 
   input::inputHandler();
   
   autosprayer.main();
 
   sbusRx.mainloop();
-
-  lidar_left.lidar_main();
-  lidar_right.lidar_main();
-  
-  accel.main();
-
-  YawPID.input = calculatedDistance(lidar_left.get_reading(),accel.get_pitch()) - calculatedDistance(lidar_right.get_reading(),accel.get_pitch());
-  YawPID.pid.Compute();
-
-  PitchPID.input = (calculatedDistance(lidar_left.get_reading(),accel.get_pitch()) + calculatedDistance(lidar_right.get_reading(),accel.get_pitch())) / 2;
-  PitchPID.pid.Compute();
-
-  //If the yaw PID is in manual mode, set the output to 0 so it starts from a known point next time it is set to automatic mode
-  if (YawPID.pid.GetMode() == MANUAL) {
-    YawPID.output = 0;
-  }
-
-  //If the pitch PID is in manual mode, set the output to 0 so it starts from a known point next time it is set to automatic mode
-  if (PitchPID.pid.GetMode() == MANUAL) {
-    PitchPID.output = 0;
-  }
-
-  //Add 1020 to the yaw and pitch PID outputs, which is the equivalent of "sticks centered" on the transmitter
-  YawOutput_Adjusted = (int)YawPID.output + 1020;
-  PitchOutput_Adjusted = (int)PitchPID.output + 1020;
-
-  if (YawPID.pid.GetMode() == AUTOMATIC) {
-    sbusRx.setChannel(4, YawOutput_Adjusted);
-  }
-  else {
-    sbusRx.setChannel(4, 0);
-  }
-
-  if (PitchPID.pid.GetMode() == AUTOMATIC) {
-    sbusRx.setChannel(2, PitchOutput_Adjusted);
-  }
-  else {
-    sbusRx.setChannel(2, 0);
-  }
 
 }
 

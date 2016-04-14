@@ -22,15 +22,15 @@ class adxl345{
   
   private:
     int16_t x, y, z;
-    void readAll(int16_t &x, int16_t &y, int16_t &z);
+    void read_accel(int16_t &x, int16_t &y, int16_t &z);
     bool read_complete;
     double pitch;
-    double calculatedPitch();
 
   public:
     void init();
     void main();
     double get_pitch();
+    double calc_pitch();
 };
 
 struct axis{
