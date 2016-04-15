@@ -8,10 +8,10 @@
 #include "pid_struct.h"
 #include "paint.h"
 #include "adxl345.h"
+#include "flyspray.h"
 
-uint16_t calculatedDistance(uint16_t raw, double angle);
-
-bool print_status, oneshot20ms = false;
+bool oneshot1000ms, oneshot20ms = false;
+uint32_t count20ms, count1000ms = 0;
 int pos = 0;
 bool toggle = false;
 int YawOutput_Adjusted;
@@ -63,39 +63,18 @@ void setup() {
 
 void loop() {
   
-  /*if((millis()%1000==0)&!print_status){
-
-    print_status = true;
-    accel.readAll(xval, yval, zval);
-    Serial.print("X Val: ");
-    Serial.println(xval);
-    Serial.print("Y Val: ");
-    Serial.println(yval);
-    Serial.print("Z Val: ");
-    Serial.println(zval);
-    Serial.print("Calculated pitch: ");
-    Serial.println(accel.calculatedPitch());
-    Serial.print("Raw distance: ");
-    Serial.println(lidar_left.get_reading());
-    Serial.print("Corrected distance: ");
-    Serial.println(calculatedDistance());
-    Serial.println("");
-    
-  }
-  else{
-    print_status = false;  
-  }*/
-  
-  if((millis()%20)&!oneshot20ms){
+  if((millis()%20==0)&!oneshot20ms){
     
     oneshot20ms = true;
-    
-    //Get a new distance value from each lidar
-    lidar_left.read_lidar();
-    lidar_right.read_lidar();
+    count20ms++;
     
     //Get a new pitch value from the accelerometer
     accel.calc_pitch();
+    
+    /*
+    //Get a new distance value from each lidar
+    lidar_left.read_lidar();
+    lidar_right.read_lidar();
     
     //Set a new input for the yaw PID and execute once
     YawPID.input = calculatedDistance(lidar_left.get_reading(),accel.get_pitch()) - calculatedDistance(lidar_right.get_reading(),accel.get_pitch());
@@ -132,12 +111,26 @@ void loop() {
     else {
       sbusRx.setChannel(2, 0);
     }
+    */
     
   }
-  else{
+  else if(millis()%20!=0){
     
     oneshot20ms = false;
     
+  }
+  
+  if((millis()%1000==0)&!oneshot1000ms){
+
+    oneshot1000ms = true;
+    Serial.print("Control loop executing at ");
+    Serial.print(count20ms);
+    Serial.println("Hz");
+    count20ms = 0;
+    
+  }
+  else if(millis()%1000!=0){
+    oneshot1000ms = false;  
   }
 
   input::inputHandler();

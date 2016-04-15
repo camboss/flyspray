@@ -3,6 +3,10 @@
 #include "pid_struct.h"
 #include "sbus2.h"
 #include "paint.h"
+#include "adxl345.h"
+#include "flyspray.h"
+
+uint16_t calculatedDistance(uint16_t raw, double angle);
 
 String input::inputString = "";
 int input::state = 0;
@@ -21,12 +25,24 @@ void input::read_parameter(const String& parameter){
     Serial3.println(lidar_left.get_reading());
   }
   
+  else if (parameter == "LCV") {
+    Serial3.println(calculatedDistance(lidar_left.get_reading(),accel.get_pitch()));
+  }
+  
   else if (parameter == "RLO") {
     Serial3.println(lidar_right.get_offset());
   }
   
   else if (parameter == "RLV") {
     Serial3.println(lidar_right.get_reading());  
+  }
+  
+  else if (parameter == "RCV") {
+    Serial3.println(calculatedDistance(lidar_right.get_reading(),accel.get_pitch()));
+  }
+  
+  else if (parameter == "PITCH") {
+    Serial3.println(accel.get_pitch());
   }
 
   else if (parameter == "YAW_MODE") {
