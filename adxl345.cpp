@@ -95,18 +95,6 @@ void adxl345::init(){
 
 }
 
-void adxl345::main(){
-  
-  if((millis()%20==0)&!read_complete){
-    read_complete = true;
-    pitch = calc_pitch();  
-  }
-  else{
-    read_complete = false;  
-  }
-  
-}
-
 double adxl345::get_pitch(){
   return pitch;  
 }
@@ -134,12 +122,12 @@ void adxl345::read_accel(int16_t &x, int16_t &y, int16_t &z){
 
 }
 
-double adxl345::calc_pitch(){
+void adxl345::calc_pitch(){
   
   int16_t xout, yout, zout;
   
   read_accel(xout,yout,zout);
   
-  return atan2(yout,zout);
+  pitch = atan2(yout,zout);
   
 }

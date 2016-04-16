@@ -28,9 +28,8 @@ class adxl345{
 
   public:
     void init();
-    void main();
     double get_pitch();
-    double calc_pitch();
+    void calc_pitch();
 };
 
 struct axis{

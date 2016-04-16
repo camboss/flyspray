@@ -46,6 +46,8 @@ uint8_t lidar::read_lidar(){
     reading_raw |= wire.read(); // receive low byte as lower 8 bits
     reading_output = reading_raw + offset;
     
+    delayMicroseconds(500);
+    
     //Request the next lidar reading to start
     wire.beginTransmission((int)LIDARLite_ADDRESS); // transmit to LIDAR-Lite
     wire.write((int)RegisterMeasure); // sets register pointer to  (0x00)
