@@ -10,7 +10,7 @@
 #include "adxl345.h"
 #include "flyspray.h"
 
-bool oneshot1000ms, oneshot20ms = false;
+bool oneshot1000ms, oneshot20ms, oneshot7ms = false;
 uint32_t count20ms, count1000ms, count = 0;
 int pos = 0;
 bool toggle = false;
@@ -33,8 +33,8 @@ void setup() {
   Serial.println("Accelerometer initialisation complete");
   
   Serial.println("Starting lidar initialisation");
-  lidar_left.init();
-  lidar_right.init();
+  //lidar_left.init();
+  //lidar_right.init();
   Serial.println("Lidar initialisation complete");
 
   Serial3.begin(57600);
@@ -70,17 +70,25 @@ void loop() {
   
   count++;
   
-  if((millis()%20<10)&!oneshot20ms){
+  //Process any input requests received via the radio
+  input::inputHandler();
+  
+  //Update the position of the paint servo
+  autosprayer.main();
+  
+  //Execute the main loop of the SBUS code. This is all clocked from the incoming serial stream so this loop should be executed as often as possible
+  sbusRx.mainloop();
+  
+  lidar_left.lidar_main();
+  lidar_right.lidar_main();
+    
+  if((millis()%50<25)&!oneshot20ms){
     
     oneshot20ms = true;
     count20ms++;
     
     //Get a new pitch value from the accelerometer
     accel.calc_pitch();
-    
-    //Get a new distance value from each lidar
-    lidar_left.read_lidar();
-    lidar_right.read_lidar();
     
     //Set a new input for the yaw PID and execute once
     YawPID.input = calculatedDistance(lidar_left.get_reading(),accel.get_pitch()) - calculatedDistance(lidar_right.get_reading(),accel.get_pitch());
@@ -119,7 +127,7 @@ void loop() {
     }
     
   }
-  else if(millis()%20>=10){
+  else if(millis()%50>=25){
     
     oneshot20ms = false;
     
@@ -140,11 +148,7 @@ void loop() {
     Serial.println(lidar_right.get_reading());
     Serial.print("Right lidar corrected distance: ");
     Serial.println(calculatedDistance(lidar_right.get_reading(),accel.get_pitch()));
-    Serial.print("Left lidar raw distance: ");
-    Serial.println(lidar_left.get_reading());
-    Serial.print("Left lidar corrected distance: ");
-    Serial.println(calculatedDistance(lidar_left.get_reading(),accel.get_pitch()));
-    Serial.println("");
+    Serial.println();
     count20ms = 0;
     count = 0;
     
@@ -152,15 +156,6 @@ void loop() {
   else if(millis()%1000>=500){
     oneshot1000ms = false;  
   }
-
-  //Process any input requests received via the radio
-  input::inputHandler();
-  
-  //Update the position of the paint servo
-  autosprayer.main();
-  
-  //Execute the main loop of the SBUS code. This is all clocked from the incoming serial stream so this loop should be executed as often as possible
-  sbusRx.mainloop();
 
 }
 

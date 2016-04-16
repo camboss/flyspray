@@ -119,6 +119,8 @@ void adxl345::read_accel(int16_t &x, int16_t &y, int16_t &z){
   y |= Wire1.read() << 8; // receive low byte as lower 8 bits
   z = Wire1.read(); // receive high byte (overwrites previous reading)
   z |= Wire1.read() << 8; // receive low byte as lower 8 bits
+  
+  delayMicroseconds(1100);
 
 }
 

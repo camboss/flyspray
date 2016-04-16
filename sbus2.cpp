@@ -36,15 +36,13 @@ void SBUS::begin() {
 }
 
 void SBUS::mainloop(){
-
-      if(receiveFrame() > 0){
-        decodeFrame();
-        copyChannels();
-        substituteChannels();
-        encodeFrame();
-        transmitFrame();
-      }
-  
+  if(receiveFrame() > 0){
+    decodeFrame();
+    copyChannels();
+    substituteChannels();
+    encodeFrame();
+    transmitFrame();   
+  } 
 }
 
 void SBUS::substituteChannels(){
@@ -126,38 +124,6 @@ void SBUS::decodeFrame(){
   if(!checkChannel(8,((sbusFrameRx[10] >> 5 | sbusFrameRx[11] << 3) & 0x07FF))){
     error = true;
   }
-  
-  /*if(!checkChannel(8,((sbusFrameRx[12] | sbusFrameRx[13] << 8) & 0x07FF))){
-    error = true;
-  }
-  
-  if(!checkChannel(9,((sbusFrameRx[13] >> 3 | sbusFrameRx[14] << 5) & 0x07FF))){
-    error = true;
-  }
-  
-  if(!checkChannel(10,((sbusFrameRx[14] >> 6 | sbusFrameRx[15] << 2 | sbusFrameRx[16] << 10) & 0x07FF))){
-    error = true;
-  }
-  
-  if(!checkChannel(11,((sbusFrameRx[16] >> 1 | sbusFrameRx[17] << 7) & 0x07FF))){
-    error = true;
-  }
-  
-  if(!checkChannel(12,((sbusFrameRx[17] >> 4 | sbusFrameRx[18] << 4) & 0x07FF))){
-    error = true;
-  }
-  
-  if(!checkChannel(13,((sbusFrameRx[18] >> 7 | sbusFrameRx[19] << 1 | sbusFrameRx[20] << 9) & 0x07FF))){
-    error = true;
-  }
-  
-  if(!checkChannel(14,((sbusFrameRx[20] >> 2 | sbusFrameRx[21] << 6) & 0x07FF))){
-    error = true;
-  }
-
-  if(!checkChannel(15,((sbusFrameRx[21] >> 5 | sbusFrameRx[22] << 3) & 0x07FF))){
-    error = true;
-  }*/
   
   if ((sbusFrameRx[23] >> 3) & 0x0001) {
     _failsafe = SBUS_FAILSAFE_ACTIVE;
@@ -247,13 +213,3 @@ bool SBUS::getFailsafeStatus(){
   return _failsafe;
 }
 
-/*void SBUS::setChannelLimits(void){
-  for(int i = 0; i < 18; i++){
-    if(channels_in[i] < _channels_min[i]){
-      _channels_min[i] = channels_in[i];
-    }
-    if(channels_in[i] > _channels_max[i]){
-      _channels_max[i] = channels_in[i];
-    }  
-  }
-}*/
